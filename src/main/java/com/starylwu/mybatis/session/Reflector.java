@@ -9,10 +9,7 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Author: WuYuLong
@@ -34,12 +31,19 @@ public class Reflector {
         for (int i = 0;i < declaredFields.length; i++){
             try {
                 String fieldName = declaredFields[i].getName();
-                String upFirstFieldName = toUpFirst(fieldName);
-                Method setMethod = cls.getDeclaredMethod(setMethodFix + upFirstFieldName, cls);
-                Method getMethod = cls.getDeclaredMethod(getMethodFix + upFirstFieldName, cls);
-                setMethods.put(fieldName, setMethod);
-                getMethods.put(fieldName, getMethod);
-            } catch (NoSuchMethodException e) {
+                String setMethodName = setMethodFix + toUpFirst(fieldName);
+                String getMethodName = getMethodFix + toUpFirst(fieldName);
+                Method[] methods = cls.getMethods();
+                for (int j=0; j< methods.length; j++){
+                    Method method = methods[j];
+                    if (Objects.equals(setMethodName,method.getName())){
+                        setMethods.put(fieldName, method);
+                    }
+                    if (Objects.equals(getMethodName,method.getName())){
+                        getMethods.put(fieldName, method);
+                    }
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

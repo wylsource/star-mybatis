@@ -24,14 +24,16 @@ public class SimpleExecutor implements Executor{
             Field[] declaredFields = aClass.getDeclaredFields();
             Object instance = aClass.newInstance();
             int index = 0;
-            ResultSetMetaData metaData = resultSet.getMetaData();
             Reflector reflector = new Reflector(aClass);
-            while (resultSet.next() && index < declaredFields.length){
+            resultSet.next();
+            while (index < declaredFields.length) {
                 Field field = declaredFields[index];
                 Method method = reflector.setMethods.get(field.getName());
-                if (Objects.nonNull(metaData)){
-                    method.invoke(instance, resultSet.getString(++index));
+                if (Objects.nonNull(method)) {
+                    Object object = resultSet.getObject(TestMapperXml.fieldMapping.get(field.getName()));
+                    method.invoke(instance, object);
                 }
+                index++;
             }
             return (E)instance;
         } catch (SQLException e) {
