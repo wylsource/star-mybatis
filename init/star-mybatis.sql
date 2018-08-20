@@ -16,7 +16,8 @@
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
-
+CREATE DATABASE `star-mybatis`;
+USE `star-mybatis`;
 -- ----------------------------
 -- Table structure for user
 -- ----------------------------

@@ -1,6 +1,9 @@
 package com.starylwu.mybatis.session;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.sql.*;
+import java.util.Objects;
 
 /**
  * @Auther: Wuyulong
@@ -16,19 +19,33 @@ public class SimpleExecutor implements Executor{
             String executeSql = String.format(sql, String.valueOf(parameter));
             PreparedStatement preparedStatement = connection.prepareStatement(executeSql);
             ResultSet resultSet = preparedStatement.executeQuery();
-            Test test  = new Test();
-
-            while (resultSet.next()){
-                test.setUserId(resultSet.getInt(1));
-                test.setUserName(resultSet.getString(2));
-                test.setUserPassword(resultSet.getString(3));
+            String returnType = TestMapperXml.methodSqlMapping.get("selectOne_returnType");
+            Class<?> aClass = Class.forName(returnType);
+            Field[] declaredFields = aClass.getDeclaredFields();
+            Object instance = aClass.newInstance();
+            int index = 0;
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            Reflector reflector = new Reflector(aClass);
+            while (resultSet.next() && index < declaredFields.length){
+                Field field = declaredFields[index];
+                Method method = reflector.setMethods.get(field.getName());
+                if (Objects.nonNull(metaData)){
+                    method.invoke(instance, resultSet.getString(++index));
+                }
             }
-            return (E)test;
+            return (E)instance;
         } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e){
+            e.printStackTrace();
+        } catch (Exception e){
             e.printStackTrace();
         }
         return null;
     }
+
+    // see mybatis Reflector.class
+
 
     private Connection getConnection() throws SQLException {
         String URL="jdbc:mysql://127.0.0.1:3306/star-mybatis?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC";

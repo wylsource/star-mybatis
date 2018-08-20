@@ -5,7 +5,7 @@ package com.starylwu.mybatis.session;
  * @Date: 2018/8/18 08:43
  * @Description:
  */
-public class Test {
+public class Test{
 
     private Integer userId;
 

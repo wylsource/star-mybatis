@@ -16,5 +16,6 @@ public class TestMapperXml {
 
     static {
         methodSqlMapping.putIfAbsent("selectOne", "select * from user where user_id = %s");
+        methodSqlMapping.putIfAbsent("selectOne_returnType", "com.starylwu.mybatis.session.Test");
     }
 }
