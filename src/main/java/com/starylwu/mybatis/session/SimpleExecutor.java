@@ -1,6 +1,6 @@
 package com.starylwu.mybatis.session;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Objects;
@@ -15,26 +15,32 @@ public class SimpleExecutor implements Executor{
     @Override
     public <E> E query(String sql, Object parameter){
         try {
+            //获取数据库连接&&执行sql
             Connection connection = getConnection();
             String executeSql = String.format(sql, String.valueOf(parameter));
             PreparedStatement preparedStatement = connection.prepareStatement(executeSql);
             ResultSet resultSet = preparedStatement.executeQuery();
+            //封装结果集（目前支持查询单个）--使用反射
             String returnType = TestMapperXml.methodSqlMapping.get("selectOne_returnType");
-            Class<?> aClass = Class.forName(returnType);
-            Field[] declaredFields = aClass.getDeclaredFields();
-            Object instance = aClass.newInstance();
-            int index = 0;
-            Reflector reflector = new Reflector(aClass);
+            Class<?> clazz = Class.forName(returnType);
+            Object instance = clazz.newInstance();
+            Reflector reflector = new Reflector(clazz);
             resultSet.next();
-            while (index < declaredFields.length) {
-                Field field = declaredFields[index];
-                Method method = reflector.setMethods.get(field.getName());
-                if (Objects.nonNull(method)) {
-                    Object object = resultSet.getObject(TestMapperXml.fieldMapping.get(field.getName()));
-                    method.invoke(instance, object);
-                }
-                index++;
-            }
+            TestMapperXml.fieldMapping.entrySet().stream()
+                    .forEach(entry -> {
+                        Method setMethod = reflector.setMethods.get(entry.getKey());
+                        if (Objects.nonNull(setMethod)){
+                            try {
+                                setMethod.invoke(instance, resultSet.getObject(entry.getValue()));
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            } catch (InvocationTargetException e) {
+                                e.printStackTrace();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
             return (E)instance;
         } catch (SQLException e) {
             e.printStackTrace();

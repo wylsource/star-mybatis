@@ -11,6 +11,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import static com.starylwu.mybatis.session.TestMapperXml.fieldMapping;
+
 /**
  * @Author: WuYuLong
  * @Date: Create in 18:49 2018/8/20
@@ -26,11 +28,14 @@ public class Reflector {
     private static final String setMethodFix = "set";
     private static final String getMethodFix = "get";
 
+    /**
+     * 构造的时候初始化对应class的get/set方法
+     * @param cls
+     */
     public Reflector(Class<?> cls){
-        Field[] declaredFields = cls.getDeclaredFields();
-        for (int i = 0;i < declaredFields.length; i++){
+        Set<String> fieldSet = fieldMapping.keySet();
+        fieldSet.stream().forEach(fieldName -> {
             try {
-                String fieldName = declaredFields[i].getName();
                 String setMethodName = setMethodFix + toUpFirst(fieldName);
                 String getMethodName = getMethodFix + toUpFirst(fieldName);
                 Method[] methods = cls.getMethods();
@@ -46,9 +51,14 @@ public class Reflector {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
+        });
     }
 
+    /**
+     * 将首字母大写
+     * @param value
+     * @return
+     */
     private String toUpFirst(String value){
         char[] chars = value.toCharArray();
         chars[0] -= 32;

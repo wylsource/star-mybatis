@@ -13,7 +13,8 @@ import java.util.List;
  */
 public class MybatisTest {
 
-    public static void main(String[] args) {
+    @org.junit.Test
+    public void test() {
         SqlSession sqlSession = new SqlSession();
         TestMapper mapper = sqlSession.getMapper(TestMapper.class);
         Test test = mapper.selectOne(1);
